@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChatBot } from './components/ChatBot';
 import { BackToTop } from './components/BackToTop';
 import { CartDrawer } from './components/CartDrawer';
@@ -205,7 +205,7 @@ export default function App() {
     <AuthProvider>
       <DataProvider>
         <CartProvider>
-          <HashRouter>
+          <BrowserRouter>
             <Routes>
               <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
               <Route path="/livros" element={<PublicLayout><BooksPage /></PublicLayout>} />
@@ -228,7 +228,7 @@ export default function App() {
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
-          </HashRouter>
+          </BrowserRouter>
         </CartProvider>
       </DataProvider>
     </AuthProvider>
