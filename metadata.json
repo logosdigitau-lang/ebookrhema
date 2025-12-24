@@ -1,0 +1,8 @@
+{
+  "name": "Ebook Rhema",
+  "description": "Uma plataforma completa de ebooks cristãos com curadoria especial, painel administrativo robusto e suporte por IA.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
