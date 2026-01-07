@@ -14,6 +14,14 @@ export interface Book {
   isbn: string;
   longDescription?: string;
   benefits?: string[];
+  isPurchaseBlocked?: boolean;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  bookId: string;
+  email: string;
+  createdAt: string;
 }
 
 export interface Testimonial {

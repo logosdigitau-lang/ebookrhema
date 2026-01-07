@@ -80,7 +80,13 @@ export const ManageBooks: React.FC = () => {
                   </div>
                 </td>
                 <td className="p-6 text-xs text-stone-500 font-mono">{book.isbn}</td>
-                <td className="p-6 font-bold text-stone-700">R$ {book.price.toFixed(2)}</td>
+                <td className="p-6 font-bold text-stone-700">
+                  {book.isPurchaseBlocked ? (
+                    <span className="text-stone-400 font-bold text-xs uppercase tracking-wider bg-stone-100 px-2 py-1 rounded">Em Breve</span>
+                  ) : (
+                    `R$ ${book.price.toFixed(2)}`
+                  )}
+                </td>
                 <td className="p-6">
                   <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase ${book.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
                     }`}>
@@ -95,6 +101,15 @@ export const ManageBooks: React.FC = () => {
                     <Link to={`/admin/livros/editar/${book.id}`} className="p-2 text-stone-400 hover:text-rhema-primary transition-colors">
                       <span className="material-symbols-outlined text-xl">edit</span>
                     </Link>
+                    {book.isPurchaseBlocked && (
+                      <button
+                        onClick={() => alert(`Lista de espera do livro ${book.title}:\n(Funcionalidade de visualização em desenvolvimento)`)}
+                        className="p-2 text-stone-400 hover:text-blue-500 transition-colors"
+                        title="Ver Lista de Espera"
+                      >
+                        <span className="material-symbols-outlined text-xl">groups</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => deleteBook(book.id)}
                       className="p-2 text-stone-400 hover:text-red-500 transition-colors"

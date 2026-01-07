@@ -9,8 +9,12 @@ export const BookDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { books } = useData();
   const { items, addToCart } = useCart();
+  const { addToWaitlist } = useData();
   const [isShared, setIsShared] = useState(false);
-  
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+
   const book = useMemo(() => books.find(b => b.id === id), [id, books]);
   const cartItem = useMemo(() => items.find(item => item.id === id), [items, id]);
 
@@ -37,6 +41,23 @@ export const BookDetailsPage: React.FC = () => {
     navigate(`/checkout/${book.id}`);
   };
 
+  const handleJoinWaitlist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!book || !waitlistEmail) return;
+
+    setWaitlistStatus('loading');
+    const result = await addToWaitlist(book.id, waitlistEmail);
+
+    if (result.success) {
+      setWaitlistStatus('success');
+      setStatusMessage(result.message);
+      setWaitlistEmail('');
+    } else {
+      setWaitlistStatus('error');
+      setStatusMessage(result.message);
+    }
+  };
+
   if (!book) return <div className="p-20 text-center font-bold">Livro não encontrado</div>;
 
   return (
@@ -58,9 +79,8 @@ export const BookDetailsPage: React.FC = () => {
 
           <div className="space-y-8">
             <div className="space-y-2">
-              <span className={`inline-block px-3 py-1 text-[10px] font-black uppercase rounded-full ${
-                book.format === 'digital' ? 'bg-orange-100 text-orange-600' : 'bg-stone-900 text-white'
-              }`}>
+              <span className={`inline-block px-3 py-1 text-[10px] font-black uppercase rounded-full ${book.format === 'digital' ? 'bg-orange-100 text-orange-600' : 'bg-stone-900 text-white'
+                }`}>
                 {book.format === 'digital' ? 'Ebook Digital' : 'Livro Físico'}
               </span>
               <h1 className="text-4xl lg:text-6xl font-black text-stone-900 leading-tight">{book.title}</h1>
@@ -69,52 +89,98 @@ export const BookDetailsPage: React.FC = () => {
 
             <p className="text-stone-600 leading-relaxed text-lg">{book.description}</p>
 
-            <div className="flex items-baseline gap-2">
-               <span className="text-4xl font-black text-stone-900">R$ {book.price.toFixed(2)}</span>
-            </div>
+            {book.isPurchaseBlocked ? (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-stone-400">EM BREVE</span>
+                </div>
 
-            <div className="flex flex-col gap-4">
-              <button 
-                onClick={handleBuyNow}
-                className="w-full py-5 bg-rhema-primary text-white font-black rounded-2xl shadow-2xl shadow-rhema-primary/20 transition-all text-xl flex items-center justify-center gap-3 hover:brightness-110 active:scale-[0.98]"
-              >
-                <span className="material-symbols-outlined">shopping_cart_checkout</span>
-                Comprar Agora
-              </button>
-
-              <button 
-                onClick={() => addToCart(book)}
-                className={`w-full py-4 font-bold rounded-2xl border-2 transition-all flex items-center justify-center gap-3 ${
-                  cartItem 
-                    ? 'border-green-600 text-green-600 bg-green-50' 
-                    : 'border-stone-200 text-stone-600 hover:bg-stone-50'
-                }`}
-              >
-                <span className="material-symbols-outlined">{cartItem ? 'check_circle' : 'add_shopping_cart'}</span>
-                {cartItem ? `No Carrinho (${cartItem.quantity})` : 'Adicionar ao Carrinho'}
-              </button>
-              
-              <div className="flex gap-4 pt-2">
-                <button 
-                  onClick={handleCopyLink} 
-                  className="flex-1 py-4 border-2 border-stone-100 rounded-2xl font-bold flex flex-col items-center justify-center gap-1 transition-colors hover:bg-stone-50"
-                  title="Copiar link do livro"
-                >
-                  <span className="material-symbols-outlined text-stone-600">{isShared ? 'check' : 'content_copy'}</span>
-                  <span className="text-[10px] uppercase tracking-widest text-stone-500">{isShared ? 'Copiado' : 'Link'}</span>
-                </button>
-                
-                <a 
-                  href="https://curt.link/livro21DIE"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 py-4 bg-[#25D366] text-white rounded-2xl font-bold flex flex-col items-center justify-center gap-1 shadow-lg shadow-[#25D366]/20 hover:brightness-105 transition-all"
-                  title="Suporte via WhatsApp"
-                >
-                  <span className="material-symbols-outlined">support_agent</span>
-                  <span className="text-[10px] uppercase tracking-widest">Suporte</span>
-                </a>
+                <div className="bg-stone-50 p-6 rounded-3xl border border-stone-100">
+                  {waitlistStatus === 'success' ? (
+                    <div className="text-center space-y-2 py-4">
+                      <div className="size-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="material-symbols-outlined">check</span>
+                      </div>
+                      <h3 className="font-bold text-lg text-stone-800">Pronto!</h3>
+                      <p className="text-stone-500 font-medium">{statusMessage}</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleJoinWaitlist} className="space-y-4">
+                      <div className="space-y-2">
+                        <h3 className="font-bold text-lg text-stone-800">Entre para a Lista de Espera 🚀</h3>
+                        <p className="text-stone-500 text-sm">Seja o primeiro a saber quando este livro for lançado!</p>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <input
+                          type="email"
+                          required
+                          placeholder="Seu melhor e-mail"
+                          className="w-full p-4 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-rhema-primary/20 outline-none transition-all"
+                          value={waitlistEmail}
+                          onChange={(e) => setWaitlistEmail(e.target.value)}
+                        />
+                        <button
+                          type="submit"
+                          disabled={waitlistStatus === 'loading'}
+                          className="w-full py-4 bg-rhema-primary text-white font-bold rounded-xl shadow-lg shadow-rhema-primary/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {waitlistStatus === 'loading' ? 'Enviando...' : 'Me Avise do Lançamento'}
+                        </button>
+                      </div>
+                      {waitlistStatus === 'error' && <p className="text-red-500 text-xs font-bold text-center bg-red-50 p-2 rounded-lg">{statusMessage}</p>}
+                    </form>
+                  )}
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-stone-900">R$ {book.price.toFixed(2)}</span>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <button
+                    onClick={handleBuyNow}
+                    className="w-full py-5 bg-rhema-primary text-white font-black rounded-2xl shadow-2xl shadow-rhema-primary/20 transition-all text-xl flex items-center justify-center gap-3 hover:brightness-110 active:scale-[0.98]"
+                  >
+                    <span className="material-symbols-outlined">shopping_cart_checkout</span>
+                    Comprar Agora
+                  </button>
+
+                  <button
+                    onClick={() => addToCart(book)}
+                    className={`w-full py-4 font-bold rounded-2xl border-2 transition-all flex items-center justify-center gap-3 ${cartItem
+                      ? 'border-green-600 text-green-600 bg-green-50'
+                      : 'border-stone-200 text-stone-600 hover:bg-stone-50'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined">{cartItem ? 'check_circle' : 'add_shopping_cart'}</span>
+                    {cartItem ? `No Carrinho (${cartItem.quantity})` : 'Adicionar ao Carrinho'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            <div className="flex gap-4 pt-2">
+              <button
+                onClick={handleCopyLink}
+                className="flex-1 py-4 border-2 border-stone-100 rounded-2xl font-bold flex flex-col items-center justify-center gap-1 transition-colors hover:bg-stone-50"
+                title="Copiar link do livro"
+              >
+                <span className="material-symbols-outlined text-stone-600">{isShared ? 'check' : 'content_copy'}</span>
+                <span className="text-[10px] uppercase tracking-widest text-stone-500">{isShared ? 'Copiado' : 'Link'}</span>
+              </button>
+
+              <a
+                href="https://curt.link/livro21DIE"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-4 bg-[#25D366] text-white rounded-2xl font-bold flex flex-col items-center justify-center gap-1 shadow-lg shadow-[#25D366]/20 hover:brightness-105 transition-all"
+                title="Suporte via WhatsApp"
+              >
+                <span className="material-symbols-outlined">support_agent</span>
+                <span className="text-[10px] uppercase tracking-widest">Suporte</span>
+              </a>
             </div>
           </div>
         </div>

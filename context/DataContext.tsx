@@ -23,6 +23,7 @@ interface DataContextType {
   addBook: (book: Book) => void;
   updateBook: (id: string, book: Partial<Book>) => void;
   deleteBook: (id: string) => void;
+  addToWaitlist: (bookId: string, email: string) => Promise<{ success: boolean; message: string }>;
   addLead: (name: string, email: string) => void;
   addSale: (sale: Sale, userId?: string) => Promise<void>;
   updateSale: (id: string, updates: Partial<Sale>) => Promise<void>;
@@ -225,6 +226,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       price: book.price,
       old_price: book.oldPrice,
       cover_url: book.coverUrl,
+      is_purchase_blocked: book.isPurchaseBlocked,
       status: book.status,
       format: book.format,
       stock: book.stock,
@@ -254,6 +256,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     delete dbUpdate.id; // ID shouldn't be updated
     delete dbUpdate.oldPrice;
     delete dbUpdate.coverUrl;
+    if (updatedBook.isPurchaseBlocked !== undefined) dbUpdate.is_purchase_blocked = updatedBook.isPurchaseBlocked;
+    delete dbUpdate.isPurchaseBlocked;
     delete dbUpdate.longDescription;
 
     const { error } = await supabase.from('books').update(dbUpdate).eq('id', id);
@@ -289,6 +293,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       price: Number(item.price),
       oldPrice: item.old_price ? Number(item.old_price) : undefined,
       coverUrl: item.cover_url,
+      isPurchaseBlocked: item.is_purchase_blocked,
       status: item.status,
       format: item.format,
       stock: item.stock,
@@ -340,10 +345,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLeads(prev => [newLead, ...prev]);
   };
 
+  const addToWaitlist = async (bookId: string, email: string) => {
+    try {
+      const { error } = await supabase
+        .from('book_waitlist')
+        .insert([{ book_id: bookId, email }]);
+
+      if (error) throw error;
+      return { success: true, message: 'Você foi adicionado à lista de espera!' };
+    } catch (error: any) {
+      console.error('Erro ao entrar na lista de espera:', error);
+      return { success: false, message: 'Erro ao entrar na lista. Tente novamente.' };
+    }
+  };
+
 
 
   return (
-    <DataContext.Provider value={{ books, sales, leads, settings, addBook, updateBook, deleteBook, addLead, addSale, updateSale, deleteSale, updateSettings }}>
+    <DataContext.Provider value={{ books, sales, leads, settings, addBook, updateBook, deleteBook, addLead, addToWaitlist, addSale, updateSale, deleteSale, updateSettings }}>
       {children}
     </DataContext.Provider>
   );

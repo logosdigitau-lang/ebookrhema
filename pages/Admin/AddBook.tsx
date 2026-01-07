@@ -20,7 +20,8 @@ export const AddBook: React.FC = () => {
     category: 'Vida Cristã',
     status: 'active' as const,
     format: 'physical' as 'physical' | 'digital',
-    stock: '50'
+    stock: '50',
+    isPurchaseBlocked: false
   });
 
   // Edit Mode: Populate form if ID is present
@@ -37,7 +38,8 @@ export const AddBook: React.FC = () => {
           category: bookToEdit.category,
           status: bookToEdit.status as 'active',
           format: bookToEdit.format as 'physical' | 'digital',
-          stock: bookToEdit.stock?.toString() || '0'
+          stock: bookToEdit.stock?.toString() || '0',
+          isPurchaseBlocked: bookToEdit.isPurchaseBlocked || false
         });
         setImagePreview(bookToEdit.coverUrl);
       }
@@ -69,8 +71,8 @@ export const AddBook: React.FC = () => {
       description: formData.description,
       price: parseFloat(formData.price.replace(',', '.')),
       isbn: formData.isbn || 'N/A',
-      status: formData.status,
       coverUrl: imagePreview || 'https://picsum.photos/seed/newbook/400/600',
+      isPurchaseBlocked: formData.isPurchaseBlocked
     };
 
     try {
@@ -137,6 +139,17 @@ export const AddBook: React.FC = () => {
             <div className="space-y-2">
               <label className="text-sm font-bold text-stone-700">Título</label>
               <input required className="w-full p-4 bg-stone-50 border-none rounded-xl" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+            </div>
+
+            <div className="flex items-center justify-between bg-stone-50 p-4 rounded-xl">
+              <div>
+                <p className="font-bold text-stone-700">Bloquear Compra (Em Breve)</p>
+                <p className="text-xs text-stone-400">Impede a compra e exibe botão de lista de espera.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked={formData.isPurchaseBlocked} onChange={(e) => setFormData({ ...formData, isPurchaseBlocked: e.target.checked })} className="sr-only peer" />
+                <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-rhema-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rhema-primary"></div>
+              </label>
             </div>
 
             <div className="space-y-2">

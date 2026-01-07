@@ -275,7 +275,11 @@ export const LandingPage: React.FC = () => {
                   <h4 className="font-black text-xl leading-tight mb-6 text-stone-800 line-clamp-2 min-h-[3.5rem] group-hover:text-rhema-primary transition-colors">{book.title}</h4>
                   <div className="mt-auto pt-6 border-t border-stone-50 flex flex-col items-center">
                     <p className="text-[10px] text-stone-400 font-bold uppercase mb-1">{book.format === 'digital' ? 'Envio Imediato' : 'Frete a combinar'}</p>
-                    <span className="font-black text-stone-900 text-3xl tracking-tighter">R$ {book.price.toFixed(2)}</span>
+                    {book.isPurchaseBlocked ? (
+                      <span className="font-black text-stone-400 text-2xl tracking-tighter uppercase">Em Breve</span>
+                    ) : (
+                      <span className="font-black text-stone-900 text-3xl tracking-tighter">R$ {book.price.toFixed(2)}</span>
+                    )}
                   </div>
                 </div>
               </div>
