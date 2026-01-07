@@ -4,6 +4,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { Book } from '../../types';
 
+// Dynamic import for ReactQuill to avoid build issues
+import 'react-quill/dist/quill.snow.css';
+const ReactQuill = React.lazy(() => import('react-quill'));
+
 export const AddBook: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -139,6 +143,17 @@ export const AddBook: React.FC = () => {
             <div className="space-y-2">
               <label className="text-sm font-bold text-stone-700">Título</label>
               <input required className="w-full p-4 bg-stone-50 border-none rounded-xl" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-stone-700">Descrição (Sinopse)</label>
+              <textarea
+                required
+                className="w-full p-4 bg-stone-50 border-none rounded-xl min-h-[150px] resize-y"
+                placeholder="Escreva uma descrição detalhada sobre o livro..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
             </div>
 
             <div className="flex items-center justify-between bg-stone-50 p-4 rounded-xl">

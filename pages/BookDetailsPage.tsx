@@ -87,7 +87,7 @@ export const BookDetailsPage: React.FC = () => {
               <p className="text-lg text-stone-500 font-medium">Por {book.author}</p>
             </div>
 
-            <p className="text-stone-600 leading-relaxed text-lg">{book.description}</p>
+            <p className="text-stone-600 leading-relaxed text-lg whitespace-pre-line">{book.description}</p>
 
             {book.isPurchaseBlocked ? (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-700">
