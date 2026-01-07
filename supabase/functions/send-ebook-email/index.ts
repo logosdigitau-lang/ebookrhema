@@ -8,32 +8,22 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-    if (req.method === "OPTIONS") {
-        return new Response("ok", { headers: corsHeaders });
-    }
+    if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
         const payload = await req.json();
-        console.log("🔥 Webhook Triggered! Payload:", JSON.stringify(payload));
+        console.log("🔥 Webhook Disparado! Recebi:", JSON.stringify(payload));
 
-        // Webhook payload structure from Supabase Database Webhooks
-        // type: 'INSERT', table: 'orders', record: { ...custom_columns... }
         const { record } = payload;
 
         if (!record || !record.customer_email) {
-            console.error("❌ No record or email found in payload");
-            return new Response(JSON.stringify({ error: "No record found" }), {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 400,
-            });
+            console.error("❌ Erro: E-mail não encontrado no payload");
+            return new Response(JSON.stringify({ error: "No record found" }), { headers: corsHeaders, status: 400 });
         }
 
-        const email = record.customer_email;
-        const name = record.customer_name || "Cliente";
+        const { customer_email, customer_name = "Cliente" } = record;
+        console.log(`📧 Tentando enviar para: ${customer_email}`);
 
-        console.log(`📧 Preparing to send email to: ${email}`);
-
-        // Call Resend API
         const res = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
@@ -41,46 +31,35 @@ serve(async (req) => {
                 Authorization: `Bearer ${RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-                from: "Ebook Rhema <onboarding@resend.dev>", // Must verify domain or use testing domain
-                to: [email],
+                from: "Ebook Rhema <onboarding@resend.dev>",
+                to: [customer_email],
                 subject: "Seu Ebook chegou! 📚",
                 html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1>Olá, ${name}!</h1>
-            <p>Obrigado por sua compra. Seu conhecimento está garantido.</p>
-            <p>Você já pode acessar seus livros digitais na nossa Área do Leitor.</p>
+            <h1>Olá, ${customer_name}!</h1>
+            <p>Obrigado pela compra! Você já pode acessar seus livros:</p>
             <br/>
-            <a href="https://ebook-rhema.vercel.app/meus-livros" style="background-color: #DD8428; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            <a href="https://ebookrhema.vercel.app/meus-livros" style="background-color: #DD8428; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
               ACESSAR MEUS LIVROS
             </a>
             <br/><br/>
-            <p>Ou acesse: https://ebook-rhema.vercel.app/meus-livros</p>
-            <p>Digite seu e-mail (<strong>${email}</strong>) para entrar.</p>
+            <p>Link direto: https://ebookrhema.vercel.app/meus-livros</p>
           </div>
         `,
             }),
         });
 
         const data = await res.json();
-        console.log("📨 Resend Response:", res.status, JSON.stringify(data));
+        console.log("📨 Resposta do Resend:", res.status, JSON.stringify(data));
 
         if (!res.ok) {
-            console.error("❌ Resend API Error:", JSON.stringify(data));
-            return new Response(JSON.stringify(data), {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 400, // Forward error to Dashboard Logs
-            });
+            console.error("❌ Erro no Resend:", JSON.stringify(data));
+            return new Response(JSON.stringify(data), { headers: corsHeaders, status: 400 });
         }
 
-        return new Response(JSON.stringify(data), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-        });
+        return new Response(JSON.stringify(data), { headers: corsHeaders, status: 200 });
     } catch (error) {
-        console.error("💥 Unhandled Error:", error.message);
-        return new Response(JSON.stringify({ error: error.message }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 400,
-        });
+        console.error("💥 Erro Geral:", error.message);
+        return new Response(JSON.stringify({ error: error.message }), { headers: corsHeaders, status: 400 });
     }
 });
