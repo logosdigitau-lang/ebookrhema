@@ -6,8 +6,7 @@ import { supabase } from '../../services/supabaseClient';
 import { Book } from '../../types';
 
 // Dynamic import for ReactQuill to avoid build issues
-import 'react-quill/dist/quill.snow.css';
-const ReactQuill = React.lazy(() => import('react-quill'));
+
 
 export const AddBook: React.FC = () => {
   const { id } = useParams<{ id: string }>();
