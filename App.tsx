@@ -11,6 +11,7 @@ import { LoginPage } from './pages/LoginPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { BookDetailsPage } from './pages/BookDetailsPage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
+import { MyBooksPage } from './pages/MyBooksPage';
 import { DashboardOverview } from './pages/Admin/DashboardOverview';
 import { ManageBooks } from './pages/Admin/ManageBooks';
 import { AddBook } from './pages/Admin/AddBook';
@@ -59,6 +60,10 @@ const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                     </span>
                   )}
                 </button>
+
+                <Link to="/meus-livros" className="text-gray-300 hover:text-rhema-primary text-sm font-medium transition-colors">
+                  Área do Leitor
+                </Link>
 
                 {user ? (
                   <div className="flex items-center gap-4">
@@ -215,6 +220,7 @@ export default function App() {
               <Route path="/login" element={<LoginPage />} />
 
               <Route path="/meus-pedidos" element={<ProtectedRoute><PublicLayout><MyOrdersPage /></PublicLayout></ProtectedRoute>} />
+              <Route path="/meus-livros" element={<PublicLayout><MyBooksPage /></PublicLayout>} />
 
               <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminLayout><DashboardOverview /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/livros" element={<ProtectedRoute requireAdmin={true}><AdminLayout><ManageBooks /></AdminLayout></ProtectedRoute>} />

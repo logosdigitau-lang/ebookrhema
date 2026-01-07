@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
+import { supabase } from '../../services/supabaseClient';
 import { Book } from '../../types';
 
 // Dynamic import for ReactQuill to avoid build issues
@@ -14,6 +15,8 @@ export const AddBook: React.FC = () => {
   const { addBook, updateBook, books } = useData();
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [ebookFile, setEbookFile] = useState<File | null>(null);
+  const [uploadingEbook, setUploadingEbook] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -25,7 +28,8 @@ export const AddBook: React.FC = () => {
     status: 'active' as const,
     format: 'physical' as 'physical' | 'digital',
     stock: '50',
-    isPurchaseBlocked: false
+    isPurchaseBlocked: false,
+    pdfUrl: '' // PDF URL State
   });
 
   // Edit Mode: Populate form if ID is present
@@ -43,7 +47,8 @@ export const AddBook: React.FC = () => {
           status: bookToEdit.status as 'active',
           format: bookToEdit.format as 'physical' | 'digital',
           stock: bookToEdit.stock?.toString() || '0',
-          isPurchaseBlocked: bookToEdit.isPurchaseBlocked || false
+          isPurchaseBlocked: bookToEdit.isPurchaseBlocked || false,
+          pdfUrl: bookToEdit.pdfUrl || ''
         });
         setImagePreview(bookToEdit.coverUrl);
       }
@@ -56,6 +61,34 @@ export const AddBook: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEbookUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingEbook(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('ebooks')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      // For private buckets, we store the path to generate signed URLs later
+      const pdfPath = data.path;
+      setFormData({ ...formData, pdfUrl: pdfPath });
+      alert('PDF enviado com sucesso!');
+    } catch (error) {
+      console.error('Error uploading ebook:', error);
+      alert('Erro ao enviar PDF.');
+    } finally {
+      setUploadingEbook(false);
     }
   };
 
@@ -76,7 +109,8 @@ export const AddBook: React.FC = () => {
       price: parseFloat(formData.price.replace(',', '.')),
       isbn: formData.isbn || 'N/A',
       coverUrl: imagePreview || 'https://picsum.photos/seed/newbook/400/600',
-      isPurchaseBlocked: formData.isPurchaseBlocked
+      isPurchaseBlocked: formData.isPurchaseBlocked,
+      pdfUrl: formData.pdfUrl
     };
 
     try {
@@ -136,6 +170,25 @@ export const AddBook: React.FC = () => {
                 <div className="space-y-2 animate-in fade-in">
                   <label className="text-sm font-bold text-stone-700">Estoque Inicial</label>
                   <input className="w-full p-4 bg-stone-50 border-none rounded-xl" type="number" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} />
+                </div>
+              )}
+
+              {formData.format === 'digital' && (
+                <div className="space-y-2 animate-in fade-in">
+                  <label className="text-sm font-bold text-stone-700">Arquivo do Ebook (PDF)</label>
+                  <div className="flex items-center gap-4">
+                    <label className="flex-1 p-4 bg-stone-50 border-2 border-dashed border-stone-200 rounded-xl cursor-pointer hover:bg-stone-100 transition-colors flex items-center justify-center gap-2 text-stone-500 font-bold text-sm">
+                      <span className="material-symbols-outlined">upload_file</span>
+                      {uploadingEbook ? 'Enviando...' : (formData.pdfUrl ? 'Alterar PDF' : 'Enviar PDF')}
+                      <input type="file" className="hidden" accept="application/pdf" onChange={handleEbookUpload} disabled={uploadingEbook} />
+                    </label>
+                    {formData.pdfUrl && (
+                      <div className="size-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
+                        <span className="material-symbols-outlined">check_circle</span>
+                      </div>
+                    )}
+                  </div>
+                  {formData.pdfUrl && <p className="text-xs text-green-600 font-bold">Arquivo pronto para entrega.</p>}
                 </div>
               )}
             </div>

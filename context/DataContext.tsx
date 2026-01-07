@@ -226,6 +226,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       price: book.price,
       old_price: book.oldPrice,
       cover_url: book.coverUrl,
+      pdf_url: book.pdfUrl, // Added this line
       is_purchase_blocked: book.isPurchaseBlocked,
       status: book.status,
       format: book.format,
@@ -250,13 +251,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const dbUpdate: any = { ...updatedBook };
     if (updatedBook.oldPrice !== undefined) dbUpdate.old_price = updatedBook.oldPrice;
     if (updatedBook.coverUrl !== undefined) dbUpdate.cover_url = updatedBook.coverUrl;
-    if (updatedBook.longDescription !== undefined) dbUpdate.long_description = updatedBook.longDescription;
+    if (updatedBook.pdfUrl !== undefined) dbUpdate.pdf_url = updatedBook.pdfUrl; // Added this line
+    if (updatedBook.isPurchaseBlocked !== undefined) dbUpdate.is_purchase_blocked = updatedBook.isPurchaseBlocked;
 
     // Remove undefined fields and camelCase keys that don't match columns
     delete dbUpdate.id; // ID shouldn't be updated
     delete dbUpdate.oldPrice;
     delete dbUpdate.coverUrl;
-    if (updatedBook.isPurchaseBlocked !== undefined) dbUpdate.is_purchase_blocked = updatedBook.isPurchaseBlocked;
+    delete dbUpdate.pdfUrl; // Added this line
     delete dbUpdate.isPurchaseBlocked;
     delete dbUpdate.longDescription;
 
@@ -293,6 +295,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       price: Number(item.price),
       oldPrice: item.old_price ? Number(item.old_price) : undefined,
       coverUrl: item.cover_url,
+      pdfUrl: item.pdf_url, // Added this line
       isPurchaseBlocked: item.is_purchase_blocked,
       status: item.status,
       format: item.format,

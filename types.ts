@@ -15,6 +15,7 @@ export interface Book {
   longDescription?: string;
   benefits?: string[];
   isPurchaseBlocked?: boolean;
+  pdfUrl?: string; // New field for digital delivery
 }
 
 export interface WaitlistEntry {
